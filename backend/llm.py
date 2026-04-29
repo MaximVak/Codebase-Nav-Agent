@@ -9,9 +9,10 @@ def answer_question(api_key: str, question: str, chunks):
     for chunk in chunks:
         context_parts.append(
             f"""
-File: {chunk["file_path"]}
-Lines: {chunk["start_line"]}-{chunk["end_line"]}
-Code:
+SOURCE FILE: {chunk["file_path"]}
+SOURCE LINES: {chunk["start_line"]}-{chunk["end_line"]}
+
+CODE:
 {chunk["content"]}
 """
         )
@@ -21,14 +22,23 @@ Code:
     prompt = f"""
 You are an AI codebase navigation assistant.
 
-Answer the user's question using only the provided code context.
+Your job is to help developers understand a codebase using ONLY the provided source code context.
 
-Rules:
-- Cite file paths and line numbers.
-- Be specific and concise.
-- If the context is not enough, say what information is missing.
-- Do not invent files, frameworks, or behavior.
-- Explain the code in a way that helps a developer understand the project.
+Important rules:
+- Only answer using the provided context.
+- Do not guess or invent files, functions, frameworks, or behavior.
+- If the provided context is not enough, say what information is missing.
+- Cite file paths and line numbers when making claims.
+- If mentioning a function, make sure it actually appears in the cited source context.
+- Keep the answer concise, accurate, and useful.
+
+Format your answer like this:
+
+[Clear explanation]
+
+Sources:
+- file_path, lines start-end: short reason this source was used
+- file_path, lines start-end: short reason this source was used
 
 Context:
 {context}
@@ -42,14 +52,14 @@ Question:
         messages=[
             {
                 "role": "system",
-                "content": "You help developers understand unfamiliar codebases."
+                "content": "You are a careful codebase assistant. You only answer from provided source code context."
             },
             {
                 "role": "user",
                 "content": prompt
             }
         ],
-        temperature=0.2
+        temperature=0.1
     )
 
     return response.choices[0].message.content
