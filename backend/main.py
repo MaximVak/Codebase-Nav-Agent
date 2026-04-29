@@ -8,6 +8,7 @@ from indexer import create_chunks
 from retriever import get_collection, index_chunks, search_code
 from llm import answer_question
 from tech_stack import detect_tech_stack, format_tech_stack
+from project_summary import scan_project, format_project_summary
 
 
 def reset_chroma_db():
@@ -51,6 +52,12 @@ def main():
         help="Detect common technologies and configuration files in the repo."
     )
 
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Show a quick non-LLM project summary."
+    )
+
     args = parser.parse_args()
 
     if args.tech_stack:
@@ -58,8 +65,13 @@ def main():
         print(format_tech_stack(results))
         return
 
+    if args.summary:
+        summary = scan_project(args.repo)
+        print(format_project_summary(summary))
+        return
+
     if not args.question:
-        parser.error("Please provide --question, or use --tech-stack.")
+        parser.error("Please provide --question, --tech-stack, or --summary.")
 
     if args.fresh:
         reset_chroma_db()
