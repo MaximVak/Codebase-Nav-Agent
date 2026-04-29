@@ -54,13 +54,14 @@ def scan_project(repo_path: str):
 
         if path.is_file() and path.suffix in SUPPORTED_EXTENSIONS:
             relative_path = path.relative_to(repo)
-            files.append(relative_path)
+            display_path = relative_path.as_posix()
+            files.append(display_path)
 
             if path.suffix:
                 extensions[path.suffix] += 1
 
             if path.name in IMPORTANT_FILE_NAMES:
-                important_files.append(relative_path)
+                important_files.append(display_path)
 
             parts = relative_path.parts
             if len(parts) > 1:

@@ -132,7 +132,7 @@ def detect_tech_stack(repo_path: str):
             detected = ["Project documentation"]
 
         results.append({
-            "file": str(path.relative_to(repo)),
+            "file": path.relative_to(repo).as_posix(),
             "technologies": detected
         })
 

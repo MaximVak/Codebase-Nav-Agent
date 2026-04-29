@@ -26,9 +26,9 @@ def read_code_files(repo_path: str):
                 try:
                     text = path.read_text(encoding="utf-8")
                     files.append({
-                        "path": str(path.relative_to(repo)),
+                        "path": path.relative_to(repo).as_posix(),
                         "content": text
-                    })
+})
                 except UnicodeDecodeError:
                     continue
 
