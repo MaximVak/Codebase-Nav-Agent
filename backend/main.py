@@ -35,7 +35,7 @@ def main():
 
     parser.add_argument(
         "--question",
-        required=True,
+        required=False,
         help="Question to ask about the codebase."
     )
 
@@ -57,6 +57,9 @@ def main():
         results = detect_tech_stack(args.repo)
         print(format_tech_stack(results))
         return
+
+    if not args.question:
+        parser.error("Please provide --question, or use --tech-stack.")
 
     if args.fresh:
         reset_chroma_db()
