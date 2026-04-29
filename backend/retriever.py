@@ -40,7 +40,7 @@ def index_chunks(collection, chunks):
         )
 
 
-def search_code(collection, question: str, n_results: int = 5):
+def search_code(collection, question: str, n_results: int = 8):
     results = collection.query(
         query_texts=[question],
         n_results=n_results
