@@ -3,9 +3,11 @@ import os
 import shutil
 from dotenv import load_dotenv
 
+
 from indexer import create_chunks
 from retriever import get_collection, index_chunks, search_code
 from llm import answer_question
+from tech_stack import detect_tech_stack, format_tech_stack
 
 
 def reset_chroma_db():
@@ -43,7 +45,18 @@ def main():
         help="Re-index the repo from scratch."
     )
 
+    parser.add_argument(
+        "--tech-stack",
+        action="store_true",
+        help="Detect common technologies and configuration files in the repo."
+    )
+
     args = parser.parse_args()
+
+    if args.tech_stack:
+        results = detect_tech_stack(args.repo)
+        print(format_tech_stack(results))
+        return
 
     if args.fresh:
         reset_chroma_db()
