@@ -61,7 +61,21 @@ def main():
     print("Searching relevant code...")
     matched_chunks = search_code(collection, args.question)
 
-    print("Asking LLM...")
+    print("\nRetrieved sources:")
+    seen_files = set()
+    max_sources = 5
+
+    for chunk in matched_chunks:
+        file_path = chunk["file_path"]
+
+        if file_path not in seen_files:
+            seen_files.add(file_path)
+            print(f"- {file_path}, lines {chunk['start_line']}-{chunk['end_line']}")
+
+        if len(seen_files) >= max_sources:
+            break
+
+    print("\nAsking LLM...")
     answer = answer_question(api_key, args.question, matched_chunks)
 
     print("\nAnswer:\n")
