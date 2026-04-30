@@ -54,6 +54,8 @@ Example answer:
 - Includes a no-cost project summary command
 - Includes a sample repository for testing
 - Includes unit tests for core utilities
+- Supports Docker-based local usage
+- Can run tests inside Docker
 
 ## Tech Stack
 
@@ -91,6 +93,8 @@ Example answer:
             auth.js
           middleware/
             authMiddleware.js
+      Dockerfile
+      .dockerignore
       README.md
       LICENSE
       .gitignore
@@ -266,6 +270,48 @@ Example output:
     - README.md
     - package.json
 
+## Running with Docker
+
+You can run Codebase Nav Agent in Docker without manually creating a Python virtual environment.
+
+### 1. Build the Docker image
+
+From the project root, run:
+
+    docker build -t codebase-nav-agent .
+
+### 2. Run no-cost commands
+
+These commands do not require an OpenAI API key.
+
+Project summary:
+
+    docker run --rm codebase-nav-agent --repo ../sample_repo --summary
+
+Tech stack detection:
+
+    docker run --rm codebase-nav-agent --repo ../sample_repo --tech-stack
+
+### 3. Run an LLM-powered question
+
+LLM-powered questions require an OpenAI API key.
+
+Create a `.env` file inside the `backend` folder:
+
+    OPENAI_API_KEY=your_api_key_here
+
+Then run:
+
+    docker run --rm --env-file backend/.env codebase-nav-agent --repo ../sample_repo --question "Where is authentication handled?" --fresh
+
+### 4. Run tests in Docker
+
+    docker run --rm --entrypoint pytest codebase-nav-agent /app/backend
+
+Expected result:
+
+    10 passed
+
 ## Running Tests
 
 This project uses `pytest` for unit tests.
@@ -323,12 +369,10 @@ Example questions:
 - Works best on small to medium-sized repositories
 - Does not yet support uploaded ZIP files
 - Does not yet include a web interface
-- Does not yet include Docker setup
 - Retrieval quality depends on the files indexed and the wording of the question
 
 ## Roadmap
 
-- Add Docker support
 - Add FastAPI backend
 - Add React frontend
 - Support ZIP uploads
