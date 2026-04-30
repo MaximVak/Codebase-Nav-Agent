@@ -56,6 +56,9 @@ Example answer:
 - Includes unit tests for core utilities
 - Supports Docker-based local usage
 - Can run tests inside Docker
+- Includes a FastAPI backend
+- Provides API endpoints for health checks, summaries, tech stack detection, and LLM-powered codebase questions
+- Includes interactive API documentation through FastAPI Swagger UI
 
 ## Tech Stack
 
@@ -69,6 +72,7 @@ Example answer:
 
     Codebase-Nav-Agent/
       backend/
+        api.py
         main.py
         indexer.py
         retriever.py
@@ -312,6 +316,82 @@ Expected result:
 
     10 passed
 
+## Running the FastAPI Backend
+
+Codebase Nav Agent also includes a FastAPI backend so the project can be used as an API and later connected to a React frontend.
+
+### 1. Start the API server
+
+From the `backend` folder, run:
+
+    uvicorn api:app --reload
+
+The API will start at:
+
+    http://127.0.0.1:8000
+
+### 2. Open the interactive API docs
+
+Go to:
+
+    http://127.0.0.1:8000/docs
+
+The docs include these endpoints:
+
+- `GET /health`
+- `GET /`
+- `POST /summary`
+- `POST /tech-stack`
+- `POST /ask`
+
+### 3. Test the health endpoint
+
+In the API docs, run:
+
+    GET /health
+
+Expected response:
+
+    {
+      "status": "ok",
+      "service": "Codebase Nav Agent API"
+    }
+
+### 4. Test project summary
+
+Use `POST /summary` with this request body:
+
+    {
+      "repo_path": "../sample_repo"
+    }
+
+### 5. Test tech stack detection
+
+Use `POST /tech-stack` with this request body:
+
+    {
+      "repo_path": "../sample_repo"
+    }
+
+### 6. Ask a codebase question
+
+LLM-powered questions require an OpenAI API key in `backend/.env`.
+
+Use `POST /ask` with this request body:
+
+    {
+      "repo_path": "../sample_repo",
+      "question": "Where is authentication handled?",
+      "fresh": true
+    }
+
+Example response fields:
+
+- `answer`
+- `retrieved_sources`
+- `chunks_created`
+- `skipped`
+
 ## Running Tests
 
 This project uses `pytest` for unit tests.
@@ -368,12 +448,11 @@ Example questions:
 - Requires the user to provide their own OpenAI API key for LLM-powered questions
 - Works best on small to medium-sized repositories
 - Does not yet support uploaded ZIP files
-- Does not yet include a web interface
+- Does not yet include a React frontend
 - Retrieval quality depends on the files indexed and the wording of the question
 
 ## Roadmap
 
-- Add FastAPI backend
 - Add React frontend
 - Support ZIP uploads
 - Add a browser-based chat interface
