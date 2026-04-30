@@ -45,6 +45,10 @@ Example answer:
 - Uses OpenAI embeddings to search relevant code
 - Uses an OpenAI chat model to answer questions based on retrieved code
 - Provides file references and line numbers in responses
+- Shows retrieved sources before generating an answer
+- Includes a no-cost tech stack detection command
+- Includes a no-cost project summary command
+- Includes a sample repository for testing
 
 ## Tech Stack
 
@@ -56,17 +60,29 @@ Example answer:
 
 ## Project Structure
 
-    Codebase-Nav-Agent/
-      backend/
-        main.py
-        indexer.py
-        retriever.py
-        llm.py
-        requirements.txt
-        .env.example
-      sample_repo/
-      README.md
-      .gitignore
+        Codebase-Nav-Agent/
+            backend/
+                main.py
+                indexer.py
+                retriever.py
+                llm.py
+                tech_stack.py
+                project_summary.py
+                requirements.txt
+                .env.example
+            sample_repo/
+                README.md
+                package.json
+                src/
+                App.jsx
+                server/
+                db.js
+                routes/
+                    auth.js
+                middleware/
+                    authMiddleware.js
+            README.md
+            .gitignore
 
 ## How It Works
 
@@ -134,6 +150,65 @@ Arguments:
 - `--question`: Natural-language question about the codebase
 - `--fresh`: Optional flag to rebuild the vector index
 
+## Commands
+
+### Ask a question about a codebase
+
+    python main.py --repo PATH_TO_REPO --question "Your question here" --fresh
+
+Use `--fresh` when indexing a repo for the first time or after files change.
+
+Example:
+
+    python main.py --repo ../sample_repo --question "Where is authentication handled?" --fresh
+
+### Ask another question without re-indexing
+
+    python main.py --repo ../sample_repo --question "What technologies does this project use?"
+
+### Detect the tech stack without calling the LLM
+
+    python main.py --repo ../sample_repo --tech-stack
+
+Example output:
+
+    Detected technology/configuration files:
+
+    - package.json
+      - bcrypt
+      - express
+      - jsonwebtoken
+      - pg
+      - react
+      - vite
+
+    - README.md
+      - Project documentation
+
+### Generate a project summary without calling the LLM
+
+    python main.py --repo ../sample_repo --summary
+
+Example output:
+
+    Project Summary
+
+    Supported files scanned: 6
+
+    File types:
+    - .js: 3
+    - .jsx: 1
+    - .json: 1
+    - .md: 1
+
+    Main directories:
+    - server/: 3 supported files
+    - src/: 1 supported files
+
+    Important files:
+    - README.md
+    - package.json
+
 ## Example Questions
 
 - What does this project do?
@@ -143,23 +218,45 @@ Arguments:
 - Which files would I modify to add a new feature?
 - Explain the project architecture.
 
+## Sample Repository
+
+This project includes a small sample repository in `sample_repo/` so users can test the agent immediately.
+
+The sample repo is a small task tracker app with:
+
+- React frontend
+- Express-style backend
+- JWT authentication route
+- JWT authentication middleware
+- Simple user lookup database file
+
+Example questions:
+
+    python main.py --repo ../sample_repo --question "What does this sample project do?" --fresh
+
+    python main.py --repo ../sample_repo --question "Where is authentication handled?"
+
+    python main.py --repo ../sample_repo --tech-stack
+
 ## Current Limitations
 
 - Runs as a command-line tool only
-- Requires the user to provide their own OpenAI API key
+- Requires the user to provide their own OpenAI API key for LLM-powered questions
 - Works best on small to medium-sized repositories
 - Does not yet support uploaded ZIP files
 - Does not yet include a web interface
+- Does not yet separate indexes for multiple projects
 - Retrieval quality depends on the files indexed and the wording of the question
 
 ## Roadmap
 
+- Add unit tests for file scanning, chunking, tech stack detection, and project summary
+- Add a license file
+- Add better project-specific index storage
 - Add FastAPI backend
 - Add React frontend
 - Support ZIP uploads
-- Add clearer source citation formatting
-- Add project structure summary command
-- Add special tech stack detection
+- Add safety limits for repo size, file size, and ignored sensitive files
 - Add Docker support
 - Deploy a hosted demo version
 
