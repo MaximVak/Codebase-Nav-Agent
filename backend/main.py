@@ -13,9 +13,6 @@ def main():
 
     api_key = os.getenv("OPENAI_API_KEY")
 
-    if not api_key:
-        raise ValueError("Missing OPENAI_API_KEY. Create a .env file inside backend/.")
-
     parser = argparse.ArgumentParser(
         description="Codebase Nav Agent: ask questions about a local codebase."
     )
@@ -64,6 +61,9 @@ def main():
 
     if not args.question:
         parser.error("Please provide --question, --tech-stack, or --summary.")
+
+    if not api_key:
+        raise ValueError("Missing OPENAI_API_KEY. Create a .env file inside backend/.")
 
     print("Reading and chunking files...")
     chunks, skipped = create_chunks(args.repo)
