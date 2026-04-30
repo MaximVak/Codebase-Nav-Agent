@@ -38,17 +38,22 @@ Example answer:
 ## Features
 
 - Scans local code repositories
-- Reads common source file types such as Python, JavaScript, TypeScript, HTML, CSS, Markdown, and JSON
-- Ignores unnecessary folders like `.git`, `node_modules`, `venv`, and build folders
+- Reads common source file types such as Python, JavaScript, TypeScript, HTML, CSS, Markdown, JSON, TXT, YAML, and TOML
+- Ignores unnecessary folders like `.git`, `node_modules`, `venv`, `chroma_db`, test folders, and cache folders
+- Skips secret files such as `.env`, `.env.local`, `secrets.json`, and `credentials.json`
+- Skips large files to avoid indexing unnecessary or expensive content
+- Limits how many files can be indexed for safer local usage
 - Splits source files into smaller chunks with line ranges
 - Stores code chunks in a local ChromaDB vector database
+- Uses separate vector indexes for different repositories
 - Uses OpenAI embeddings to search relevant code
 - Uses an OpenAI chat model to answer questions based on retrieved code
-- Provides file references and line numbers in responses
 - Shows retrieved sources before generating an answer
+- Provides file references and line numbers in responses
 - Includes a no-cost tech stack detection command
 - Includes a no-cost project summary command
 - Includes a sample repository for testing
+- Includes unit tests for core utilities
 
 ## Tech Stack
 
@@ -60,29 +65,35 @@ Example answer:
 
 ## Project Structure
 
-        Codebase-Nav-Agent/
-            backend/
-                main.py
-                indexer.py
-                retriever.py
-                llm.py
-                tech_stack.py
-                project_summary.py
-                requirements.txt
-                .env.example
-            sample_repo/
-                README.md
-                package.json
-                src/
-                App.jsx
-                server/
-                db.js
-                routes/
-                    auth.js
-                middleware/
-                    authMiddleware.js
-            README.md
-            .gitignore
+    Codebase-Nav-Agent/
+      backend/
+        main.py
+        indexer.py
+        retriever.py
+        llm.py
+        tech_stack.py
+        project_summary.py
+        requirements.txt
+        .env.example
+        tests/
+          conftest.py
+          test_indexer.py
+          test_project_summary.py
+          test_tech_stack.py
+      sample_repo/
+        README.md
+        package.json
+        src/
+          App.jsx
+        server/
+          db.js
+          routes/
+            auth.js
+          middleware/
+            authMiddleware.js
+      README.md
+      LICENSE
+      .gitignore
 
 ## How It Works
 
@@ -94,6 +105,40 @@ Example answer:
 6. The user's question is used to retrieve the most relevant chunks.
 7. The retrieved chunks are sent to an OpenAI chat model.
 8. The model answers the question using only the retrieved code context.
+
+## Safety Features
+
+Codebase Nav Agent includes basic indexing safeguards so it does not accidentally process unnecessary, sensitive, or overly large files.
+
+The indexer:
+
+- Ignores dependency and build folders such as `node_modules`, `venv`, `.git`, `dist`, `build`, and `chroma_db`
+- Ignores test and cache folders such as `tests`, `__pycache__`, and `.pytest_cache`
+- Skips secret files such as `.env`, `.env.local`, `.env.production`, `secrets.json`, and `credentials.json`
+- Skips files larger than the configured maximum file size
+- Stops indexing after a configured maximum number of files
+- Prints an indexing safety summary when files are skipped
+
+Example safety summary:
+
+    Indexing safety summary:
+    - ignored_dirs: 12629
+    - unsupported_extensions: 3
+    - secret_files: 1
+
+## Repo-Specific Vector Indexes
+
+Each repository gets its own ChromaDB collection. This prevents chunks from different codebases from mixing together.
+
+For example:
+
+    python main.py --repo ../sample_repo --question "Where is authentication handled?" --fresh
+
+uses a different vector index than:
+
+    python main.py --repo .. --question "What does this project do?" --fresh
+
+Use `--fresh` when indexing a repository for the first time or after changing files.
 
 ## Setup
 
@@ -176,7 +221,7 @@ Example:
 
 ### Ask another question without re-indexing
 
-    python main.py --repo ../sample_repo --question "What technologies does this project use?"
+    python main.py --repo ../sample_repo --question "What technologies does this sample project use?"
 
 ### Detect the tech stack without calling the LLM
 
@@ -221,6 +266,27 @@ Example output:
     - README.md
     - package.json
 
+## Running Tests
+
+This project uses `pytest` for unit tests.
+
+The tests cover:
+
+- File scanning
+- File chunking
+- Ignored directories
+- Secret file skipping
+- Tech stack detection
+- Project summary generation
+
+From the `backend` folder, run:
+
+    pytest
+
+Expected result:
+
+    10 passed
+
 ## Example Questions
 
 - What does this project do?
@@ -257,19 +323,18 @@ Example questions:
 - Works best on small to medium-sized repositories
 - Does not yet support uploaded ZIP files
 - Does not yet include a web interface
-- Does not yet separate indexes for multiple projects
+- Does not yet include Docker setup
 - Retrieval quality depends on the files indexed and the wording of the question
 
 ## Roadmap
 
-- Add unit tests for file scanning, chunking, tech stack detection, and project summary
-- Add a license file
-- Add better project-specific index storage
+- Add Docker support
 - Add FastAPI backend
 - Add React frontend
 - Support ZIP uploads
-- Add safety limits for repo size, file size, and ignored sensitive files
-- Add Docker support
+- Add a browser-based chat interface
+- Add clearer project/session management
+- Add stricter rate limits and hosted demo safeguards
 - Deploy a hosted demo version
 
 ## Resume Description
