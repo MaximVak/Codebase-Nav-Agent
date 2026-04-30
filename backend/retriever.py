@@ -1,8 +1,23 @@
+import hashlib
+from pathlib import Path
+
 import chromadb
 from chromadb.utils.embedding_functions import OpenAIEmbeddingFunction
 
+def get_repo_collection_name(repo_path: str) -> str:
+    resolved_path = str(Path(repo_path).resolve())
+    repo_name = Path(repo_path).resolve().name.lower()
 
-def get_collection(api_key: str):
+    safe_repo_name = "".join(
+        character if character.isalnum() else "_"
+        for character in repo_name
+    )
+
+    path_hash = hashlib.sha1(resolved_path.encode("utf-8")).hexdigest()[:8]
+
+    return f"code_chunks_{safe_repo_name}_{path_hash}"
+
+def get_collection(api_key: str, repo_path: str):
     client = chromadb.PersistentClient(path="./chroma_db")
 
     embedding_function = OpenAIEmbeddingFunction(
@@ -10,12 +25,26 @@ def get_collection(api_key: str):
         model_name="text-embedding-3-small"
     )
 
+    collection_name = get_repo_collection_name(repo_path)
+
     collection = client.get_or_create_collection(
-        name="code_chunks",
+        name=collection_name,
         embedding_function=embedding_function
     )
 
     return collection
+
+def reset_collection(api_key: str, repo_path: str):
+    client = chromadb.PersistentClient(path="./chroma_db")
+
+    collection_name = get_repo_collection_name(repo_path)
+
+    try:
+        client.delete_collection(name=collection_name)
+    except Exception:
+        pass
+
+    return get_collection(api_key, repo_path)
 
 
 def index_chunks(collection, chunks):
@@ -50,7 +79,7 @@ def is_documentation_file(file_path: str) -> bool:
     )
 
 
-def search_code(collection, question: str, n_results: int = 8):
+def search_code(collection, question: str, n_results: int = 12):
     results = collection.query(
         query_texts=[question],
         n_results=n_results

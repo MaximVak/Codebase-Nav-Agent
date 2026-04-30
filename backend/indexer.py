@@ -7,8 +7,17 @@ ALLOWED_EXTENSIONS = {
 }
 
 IGNORED_DIRS = {
-    ".git", "node_modules", "dist", "build", "__pycache__",
-    ".next", "venv", ".venv", "chroma_db"
+    ".git",
+    "node_modules",
+    "dist",
+    "build",
+    "__pycache__",
+    ".next",
+    "venv",
+    ".venv",
+    "chroma_db",
+    "tests",
+    ".pytest_cache"
 }
 
 

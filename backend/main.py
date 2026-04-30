@@ -1,20 +1,12 @@
 import argparse
 import os
-import shutil
 from dotenv import load_dotenv
 
-
 from indexer import create_chunks
-from retriever import get_collection, index_chunks, search_code
+from retriever import get_collection, index_chunks, search_code, reset_collection
 from llm import answer_question
 from tech_stack import detect_tech_stack, format_tech_stack
 from project_summary import scan_project, format_project_summary
-
-
-def reset_chroma_db():
-    if os.path.exists("./chroma_db"):
-        shutil.rmtree("./chroma_db")
-
 
 def main():
     load_dotenv()
@@ -73,18 +65,16 @@ def main():
     if not args.question:
         parser.error("Please provide --question, --tech-stack, or --summary.")
 
-    if args.fresh:
-        reset_chroma_db()
-
     print("Reading and chunking files...")
     chunks = create_chunks(args.repo)
     print(f"Created {len(chunks)} chunks.")
 
-    collection = get_collection(api_key)
-
     if args.fresh:
+        collection = reset_collection(api_key, args.repo)
         print("Indexing chunks...")
         index_chunks(collection, chunks)
+    else:
+        collection = get_collection(api_key, args.repo)
 
     print("Searching relevant code...")
     matched_chunks = search_code(collection, args.question)
