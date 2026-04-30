@@ -66,8 +66,13 @@ def main():
         parser.error("Please provide --question, --tech-stack, or --summary.")
 
     print("Reading and chunking files...")
-    chunks = create_chunks(args.repo)
+    chunks, skipped = create_chunks(args.repo)
     print(f"Created {len(chunks)} chunks.")
+
+    print("\nIndexing safety summary:")
+    for reason, count in skipped.items():
+        if count > 0:
+            print(f"- {reason}: {count}")
 
     if args.fresh:
         collection = reset_collection(api_key, args.repo)
