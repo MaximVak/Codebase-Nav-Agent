@@ -59,6 +59,9 @@ Example answer:
 - Includes a FastAPI backend
 - Provides API endpoints for health checks, summaries, tech stack detection, and LLM-powered codebase questions
 - Includes interactive API documentation through FastAPI Swagger UI
+- Includes a React frontend for interacting with the agent in the browser
+- Connects the frontend to the FastAPI backend
+- Displays project summaries, tech stack results, answers, and retrieved sources
 
 ## Tech Stack
 
@@ -86,6 +89,12 @@ Example answer:
           test_indexer.py
           test_project_summary.py
           test_tech_stack.py
+      frontend/
+        src/
+          App.jsx
+          App.css
+        package.json
+        vite.config.js
       sample_repo/
         README.md
         package.json
@@ -392,6 +401,42 @@ Example response fields:
 - `chunks_created`
 - `skipped`
 
+## Running the React Frontend
+
+The project includes a React frontend built with Vite.
+
+### 1. Start the FastAPI backend
+
+From the `backend` folder:
+
+    venv\Scripts\Activate.ps1
+    uvicorn api:app --reload
+
+The backend runs at:
+
+    http://127.0.0.1:8000
+
+### 2. Start the React frontend
+
+From the `frontend` folder:
+
+    npm install
+    npm run dev
+
+The frontend runs at:
+
+    http://localhost:5173
+
+### 3. Use the app
+
+In the browser, you can:
+
+- Enter a local repository path
+- Generate a project summary
+- Detect the tech stack
+- Ask a codebase question
+- View retrieved sources
+
 ## Running Tests
 
 This project uses `pytest` for unit tests.
@@ -444,21 +489,21 @@ Example questions:
 
 ## Current Limitations
 
-- Runs as a command-line tool only
+- Frontend currently supports local repo paths only
 - Requires the user to provide their own OpenAI API key for LLM-powered questions
 - Works best on small to medium-sized repositories
-- Does not yet support uploaded ZIP files
-- Does not yet include a React frontend
+- Does not yet support ZIP uploads
+- Not yet deployed
 - Retrieval quality depends on the files indexed and the wording of the question
 
 ## Roadmap
 
-- Add React frontend
 - Support ZIP uploads
-- Add a browser-based chat interface
-- Add clearer project/session management
-- Add stricter rate limits and hosted demo safeguards
-- Deploy a hosted demo version
+- Add hosted deployment
+- Add better UI loading states and error messages
+- Add project/session management
+- Add rate limits for hosted usage
+- Add clearer project/session cleanup
 
 ## Resume Description
 
