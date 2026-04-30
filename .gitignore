@@ -22,3 +22,7 @@ backend/chroma_db/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+
+# Uploaded/extracted repos
+backend/uploads/
+backend/extracted_repos/

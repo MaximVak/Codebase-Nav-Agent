@@ -5,3 +5,4 @@ tiktoken
 pytest
 fastapi
 uvicorn
+python-multipart

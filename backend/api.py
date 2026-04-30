@@ -1,8 +1,11 @@
 import os
-from typing import Optional
+import shutil
+import uuid
+import zipfile
+from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -14,6 +17,13 @@ from project_summary import scan_project, format_project_summary
 
 
 load_dotenv()
+
+UPLOAD_DIR = Path("uploads")
+EXTRACTED_REPOS_DIR = Path("extracted_repos")
+MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
+
+UPLOAD_DIR.mkdir(exist_ok=True)
+EXTRACTED_REPOS_DIR.mkdir(exist_ok=True)
 
 app = FastAPI(
     title="Codebase Nav Agent API",
@@ -53,12 +63,68 @@ class AskResponse(BaseModel):
 class UtilityResponse(BaseModel):
     result: str
 
+class UploadResponse(BaseModel):
+    repo_path: str
+    message: str
+
+def safe_extract_zip(zip_path: Path, extract_to: Path):
+    with zipfile.ZipFile(zip_path, "r") as zip_ref:
+        for member in zip_ref.infolist():
+            member_path = extract_to / member.filename
+            resolved_member_path = member_path.resolve()
+            resolved_extract_to = extract_to.resolve()
+
+            if not str(resolved_member_path).startswith(str(resolved_extract_to)):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Unsafe ZIP file path detected."
+                )
+
+        zip_ref.extractall(extract_to)
 
 @app.get("/health")
 def health_check():
     return {
         "status": "ok",
         "service": "Codebase Nav Agent API"
+    }
+
+@app.post("/upload", response_model=UploadResponse)
+async def upload_repo(file: UploadFile = File(...)):
+    if not file.filename.endswith(".zip"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only .zip files are supported."
+        )
+
+    contents = await file.read()
+
+    if len(contents) > MAX_UPLOAD_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="ZIP file is too large. Maximum size is 10 MB."
+        )
+
+    upload_id = str(uuid.uuid4())
+    zip_path = UPLOAD_DIR / f"{upload_id}.zip"
+    extract_path = EXTRACTED_REPOS_DIR / upload_id
+
+    with open(zip_path, "wb") as saved_file:
+        saved_file.write(contents)
+
+    extract_path.mkdir(parents=True, exist_ok=True)
+
+    try:
+        safe_extract_zip(zip_path, extract_path)
+    except zipfile.BadZipFile:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded file is not a valid ZIP archive."
+        )
+
+    return {
+        "repo_path": str(extract_path.as_posix()),
+        "message": "Repository uploaded and extracted successfully."
     }
 
 
