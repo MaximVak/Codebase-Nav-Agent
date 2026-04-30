@@ -3,3 +3,5 @@ python-dotenv
 chromadb
 tiktoken
 pytest
+fastapi
+uvicorn
