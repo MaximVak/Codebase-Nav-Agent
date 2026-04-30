@@ -69,9 +69,15 @@ def main():
     chunks, skipped = create_chunks(args.repo)
     print(f"Created {len(chunks)} chunks.")
 
-    print("\nIndexing safety summary:")
-    for reason, count in skipped.items():
-        if count > 0:
+    skipped_items = {
+        reason: count
+        for reason, count in skipped.items()
+        if count > 0
+    }
+
+    if skipped_items:
+        print("\nIndexing safety summary:")
+        for reason, count in skipped_items.items():
             print(f"- {reason}: {count}")
 
     if args.fresh:
