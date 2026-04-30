@@ -140,6 +140,18 @@ After indexing once, you can ask more questions without `--fresh`:
 
     python main.py --repo .. --question "Which files handle indexing and retrieval?"
 
+## Running Tests
+
+This project uses `pytest` for unit tests. The tests cover file scanning, chunking, tech stack detection, and project summary generation.
+
+From the `backend` folder, run:
+
+    pytest
+
+Expected result:
+
+    9 passed
+
 ## Command Format
 
     python main.py --repo PATH_TO_REPO --question "Your question here" --fresh
