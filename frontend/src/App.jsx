@@ -7,15 +7,34 @@ function App() {
   const [repoPath, setRepoPath] = useState("../sample_repo");
   const [question, setQuestion] = useState("Where is authentication handled?");
   const [fresh, setFresh] = useState(true);
-  const [output, setOutput] = useState("");
-  const [sources, setSources] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [uploadMessage, setUploadMessage] = useState("");
 
-  async function callApi(endpoint, body) {
-    setLoading(true);
-    setOutput("");
-    setSources([]);
+  const [summaryOutput, setSummaryOutput] = useState("");
+  const [techStackOutput, setTechStackOutput] = useState("");
+  const [answerOutput, setAnswerOutput] = useState("");
+  const [sources, setSources] = useState([]);
+
+  const [statusMessage, setStatusMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loadingAction, setLoadingAction] = useState("");
+
+  const isLoading = Boolean(loadingAction);
+
+  function resetMessages() {
+    setStatusMessage("");
+    setErrorMessage("");
+  }
+
+  function getFriendlyError(error) {
+    if (error.message === "Failed to fetch") {
+      return "Could not connect to the backend. Make sure FastAPI is running at http://127.0.0.1:8000.";
+    }
+
+    return error.message;
+  }
+
+  async function callApi(endpoint, body, actionName) {
+    setLoadingAction(actionName);
+    resetMessages();
 
     try {
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -34,10 +53,10 @@ function App() {
 
       return data;
     } catch (error) {
-      setOutput(`Error: ${error.message}`);
+      setErrorMessage(getFriendlyError(error));
       return null;
     } finally {
-      setLoading(false);
+      setLoadingAction("");
     }
   }
 
@@ -48,15 +67,16 @@ function App() {
       return;
     }
 
+    resetMessages();
+
     if (!file.name.endsWith(".zip")) {
-      setUploadMessage("Please upload a .zip file.");
+      setErrorMessage("Please upload a .zip file.");
       return;
     }
 
-    setLoading(true);
-    setOutput("");
+    setLoadingAction("upload");
     setSources([]);
-    setUploadMessage("Uploading and extracting ZIP...");
+    setAnswerOutput("");
 
     const formData = new FormData();
     formData.append("file", file);
@@ -74,48 +94,61 @@ function App() {
       }
 
       setRepoPath(data.repo_path);
-      setUploadMessage(`Upload complete. Repo path set to: ${data.repo_path}`);
-      setOutput("ZIP uploaded successfully. You can now run Summary, Tech Stack, or Ask Codebase.");
+      setStatusMessage(`Upload complete. Repository path set to: ${data.repo_path}`);
     } catch (error) {
-      setUploadMessage("");
-      setOutput(`Error: ${error.message}`);
+      setErrorMessage(getFriendlyError(error));
     } finally {
-      setLoading(false);
+      setLoadingAction("");
       event.target.value = "";
     }
   }
 
   async function handleSummary() {
-    const data = await callApi("/summary", {
-      repo_path: repoPath
-    });
+    const data = await callApi(
+      "/summary",
+      { repo_path: repoPath },
+      "summary"
+    );
 
     if (data) {
-      setOutput(data.result);
+      setSummaryOutput(data.result);
+      setStatusMessage("Project summary generated.");
     }
   }
 
   async function handleTechStack() {
-    const data = await callApi("/tech-stack", {
-      repo_path: repoPath
-    });
+    const data = await callApi(
+      "/tech-stack",
+      { repo_path: repoPath },
+      "tech-stack"
+    );
 
     if (data) {
-      setOutput(data.result);
+      setTechStackOutput(data.result);
+      setStatusMessage("Tech stack detected.");
     }
   }
 
   async function handleAsk() {
-    const data = await callApi("/ask", {
-      repo_path: repoPath,
-      question,
-      fresh
-    });
+    const data = await callApi(
+      "/ask",
+      {
+        repo_path: repoPath,
+        question,
+        fresh
+      },
+      "ask"
+    );
 
     if (data) {
-      setOutput(data.answer);
+      setAnswerOutput(data.answer);
       setSources(data.retrieved_sources || []);
+      setStatusMessage(`Answer generated from ${data.chunks_created} indexed chunks.`);
     }
+  }
+
+  function getButtonText(action, label) {
+    return loadingAction === action ? "Loading..." : label;
   }
 
   return (
@@ -124,22 +157,26 @@ function App() {
         <p className="eyebrow">LLM Developer Tool</p>
         <h1>Codebase Nav Agent</h1>
         <p className="subtitle">
-          Ask natural-language questions about a local codebase and get grounded answers with source references.
+          Upload a zipped codebase or enter a local repo path, then ask questions
+          and get grounded answers with source references.
         </p>
       </section>
 
       <section className="panel">
+        <div className="section-heading">
+          <h2>Repository</h2>
+          <p>Use the included sample repo, enter a local path, or upload a ZIP file.</p>
+        </div>
+
         <label>
-          Upload a zipped codebase
+          Upload zipped codebase
           <input
             type="file"
             accept=".zip"
             onChange={handleUpload}
-            disabled={loading}
+            disabled={isLoading}
           />
         </label>
-
-        {uploadMessage && <p className="upload-message">{uploadMessage}</p>}
 
         <label>
           Repository path
@@ -147,21 +184,27 @@ function App() {
             value={repoPath}
             onChange={(event) => setRepoPath(event.target.value)}
             placeholder="../sample_repo"
+            disabled={isLoading}
           />
         </label>
 
         <div className="button-row">
-          <button onClick={handleSummary} disabled={loading}>
-            Project Summary
+          <button onClick={handleSummary} disabled={isLoading || !repoPath.trim()}>
+            {getButtonText("summary", "Project Summary")}
           </button>
 
-          <button onClick={handleTechStack} disabled={loading}>
-            Tech Stack
+          <button onClick={handleTechStack} disabled={isLoading || !repoPath.trim()}>
+            {getButtonText("tech-stack", "Tech Stack")}
           </button>
         </div>
       </section>
 
       <section className="panel">
+        <div className="section-heading">
+          <h2>Ask a Question</h2>
+          <p>The answer is generated from retrieved source-code chunks.</p>
+        </div>
+
         <label>
           Question
           <textarea
@@ -169,6 +212,7 @@ function App() {
             onChange={(event) => setQuestion(event.target.value)}
             placeholder="Where is authentication handled?"
             rows={4}
+            disabled={isLoading}
           />
         </label>
 
@@ -177,34 +221,50 @@ function App() {
             type="checkbox"
             checked={fresh}
             onChange={(event) => setFresh(event.target.checked)}
+            disabled={isLoading}
           />
           Re-index before asking
         </label>
 
-        <button onClick={handleAsk} disabled={loading || !question.trim()}>
-          Ask Codebase
+        <button onClick={handleAsk} disabled={isLoading || !repoPath.trim() || !question.trim()}>
+          {getButtonText("ask", "Ask Codebase")}
         </button>
       </section>
 
-      <section className="panel output-panel">
-        <h2>Output</h2>
+      {(statusMessage || errorMessage || isLoading) && (
+        <section className={`notice ${errorMessage ? "error" : "success"}`}>
+          {isLoading && <p>Running {loadingAction}...</p>}
+          {statusMessage && !isLoading && <p>{statusMessage}</p>}
+          {errorMessage && <p>{errorMessage}</p>}
+        </section>
+      )}
 
-        {loading ? (
-          <p className="muted">Loading...</p>
-        ) : (
-          <pre>{output || "Run a command to see output here."}</pre>
-        )}
+      <section className="results-grid">
+        <article className="panel output-card">
+          <h2>Project Summary</h2>
+          <pre>{summaryOutput || "Run Project Summary to see an overview here."}</pre>
+        </article>
 
-        {sources.length > 0 && (
-          <div className="sources">
-            <h3>Retrieved Sources</h3>
-            <ul>
-              {sources.map((source) => (
-                <li key={source}>{source}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <article className="panel output-card">
+          <h2>Tech Stack</h2>
+          <pre>{techStackOutput || "Run Tech Stack to see detected technologies here."}</pre>
+        </article>
+
+        <article className="panel output-card full-width">
+          <h2>Answer</h2>
+          <pre>{answerOutput || "Ask a codebase question to see the answer here."}</pre>
+
+          {sources.length > 0 && (
+            <div className="sources">
+              <h3>Retrieved Sources</h3>
+              <ul>
+                {sources.map((source) => (
+                  <li key={source}>{source}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </article>
       </section>
     </main>
   );
