@@ -62,6 +62,9 @@ Example answer:
 - Includes a React frontend for interacting with the agent in the browser
 - Connects the frontend to the FastAPI backend
 - Displays project summaries, tech stack results, answers, and retrieved sources
+- Supports ZIP upload through the React frontend
+- Extracts uploaded repositories safely on the backend
+- Allows users to analyze uploaded codebases without manually typing a repo path
 
 ## Tech Stack
 
@@ -84,6 +87,8 @@ Example answer:
         project_summary.py
         requirements.txt
         .env.example
+        uploads/                    # ignored by Git
+        extracted_repos/            # ignored by Git
         tests/
           conftest.py
           test_indexer.py
@@ -431,11 +436,47 @@ The frontend runs at:
 
 In the browser, you can:
 
-- Enter a local repository path
+- Upload a zipped codebase
+- Automatically set the extracted repo path
 - Generate a project summary
 - Detect the tech stack
 - Ask a codebase question
 - View retrieved sources
+
+## ZIP Upload Support
+
+The React frontend supports uploading a `.zip` file containing a codebase.
+
+When a ZIP file is uploaded:
+
+1. The frontend sends the file to the FastAPI backend.
+2. The backend saves the ZIP in `backend/uploads/`.
+3. The backend safely extracts it into `backend/extracted_repos/`.
+4. The backend returns an extracted `repo_path`.
+5. The frontend automatically updates the repository path field.
+6. The user can run Project Summary, Tech Stack, or Ask Codebase on the uploaded repo.
+
+Uploaded and extracted repositories are ignored by Git through `.gitignore`.
+
+Example frontend flow:
+
+1. Start the backend.
+2. Start the frontend.
+3. Upload `sample_repo.zip`.
+4. Click **Project Summary**.
+5. Click **Tech Stack**.
+6. Ask: `Where is authentication handled?`
+
+The backend also exposes a direct upload endpoint:
+
+    POST /upload
+
+The endpoint accepts a `.zip` file and returns:
+
+    {
+      "repo_path": "extracted_repos/<upload-id>",
+      "message": "Repository uploaded and extracted successfully."
+    }
 
 ## Running Tests
 
@@ -489,21 +530,21 @@ Example questions:
 
 ## Current Limitations
 
-- Frontend currently supports local repo paths only
+- Frontend currently runs locally and is not deployed
 - Requires the user to provide their own OpenAI API key for LLM-powered questions
 - Works best on small to medium-sized repositories
-- Does not yet support ZIP uploads
-- Not yet deployed
+- ZIP uploads are currently limited by backend upload size settings
+- Uploaded repos are stored locally and are not automatically cleaned up yet
 - Retrieval quality depends on the files indexed and the wording of the question
 
 ## Roadmap
 
-- Support ZIP uploads
 - Add hosted deployment
+- Add automatic cleanup for uploaded repositories
 - Add better UI loading states and error messages
 - Add project/session management
 - Add rate limits for hosted usage
-- Add clearer project/session cleanup
+- Add stricter upload controls for deployed environments
 
 ## Resume Description
 
