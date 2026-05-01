@@ -102,6 +102,17 @@ textarea {
   resize: vertical;
 }
 
+input[type="file"] {
+  padding: 0.75rem;
+}
+
+.upload-message {
+  margin-top: -4px;
+  margin-bottom: 16px;
+  color: #40506b;
+  font-weight: 600;
+}
+
 .button-row {
   display: flex;
   gap: 12px;

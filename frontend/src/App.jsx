@@ -10,6 +10,7 @@ function App() {
   const [output, setOutput] = useState("");
   const [sources, setSources] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
 
   async function callApi(endpoint, body) {
     setLoading(true);
@@ -37,6 +38,50 @@ function App() {
       return null;
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleUpload(event) {
+    const file = event.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.name.endsWith(".zip")) {
+      setUploadMessage("Please upload a .zip file.");
+      return;
+    }
+
+    setLoading(true);
+    setOutput("");
+    setSources([]);
+    setUploadMessage("Uploading and extracting ZIP...");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/upload`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Upload failed.");
+      }
+
+      setRepoPath(data.repo_path);
+      setUploadMessage(`Upload complete. Repo path set to: ${data.repo_path}`);
+      setOutput("ZIP uploaded successfully. You can now run Summary, Tech Stack, or Ask Codebase.");
+    } catch (error) {
+      setUploadMessage("");
+      setOutput(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+      event.target.value = "";
     }
   }
 
@@ -84,6 +129,18 @@ function App() {
       </section>
 
       <section className="panel">
+        <label>
+          Upload a zipped codebase
+          <input
+            type="file"
+            accept=".zip"
+            onChange={handleUpload}
+            disabled={loading}
+          />
+        </label>
+
+        {uploadMessage && <p className="upload-message">{uploadMessage}</p>}
+
         <label>
           Repository path
           <input
