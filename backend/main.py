@@ -7,6 +7,7 @@ from retriever import get_collection, index_chunks, search_code, reset_collectio
 from llm import answer_question
 from tech_stack import detect_tech_stack, format_tech_stack
 from project_summary import scan_project, format_project_summary
+from upload_manager import cleanup_uploads
 
 def main():
     load_dotenv()
@@ -47,7 +48,20 @@ def main():
         help="Show a quick non-LLM project summary."
     )
 
+    parser.add_argument(
+        "--cleanup-uploads",
+        action="store_true",
+        help="Delete uploaded ZIPs and extracted repositories."
+    )
+
     args = parser.parse_args()
+
+    if args.cleanup_uploads:
+        removed = cleanup_uploads()
+        print("Uploaded ZIPs and extracted repositories cleaned up.")
+        print(f"Uploads removed: {removed['uploads_removed']}")
+        print(f"Extracted repos removed: {removed['extracted_repos_removed']}")
+        return
 
     if args.tech_stack:
         results = detect_tech_stack(args.repo)
@@ -60,7 +74,7 @@ def main():
         return
 
     if not args.question:
-        parser.error("Please provide --question, --tech-stack, or --summary.")
+        parser.error("Please provide --question, --tech-stack, --summary, or --cleanup-uploads.")
 
     if not api_key:
         raise ValueError("Missing OPENAI_API_KEY. Create a .env file inside backend/.")

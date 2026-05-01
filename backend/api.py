@@ -14,16 +14,13 @@ from retriever import get_collection, index_chunks, search_code, reset_collectio
 from llm import answer_question
 from tech_stack import detect_tech_stack, format_tech_stack
 from project_summary import scan_project, format_project_summary
+from upload_manager import UPLOAD_DIR, EXTRACTED_REPOS_DIR, ensure_upload_dirs, cleanup_uploads
 
 
 load_dotenv()
 
-UPLOAD_DIR = Path("uploads")
-EXTRACTED_REPOS_DIR = Path("extracted_repos")
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
-
-UPLOAD_DIR.mkdir(exist_ok=True)
-EXTRACTED_REPOS_DIR.mkdir(exist_ok=True)
+ensure_upload_dirs()
 
 app = FastAPI(
     title="Codebase Nav Agent API",
@@ -66,6 +63,10 @@ class UtilityResponse(BaseModel):
 class UploadResponse(BaseModel):
     repo_path: str
     message: str
+
+class CleanupResponse(BaseModel):
+    message: str
+    removed: dict
 
 def safe_extract_zip(zip_path: Path, extract_to: Path):
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
@@ -125,6 +126,15 @@ async def upload_repo(file: UploadFile = File(...)):
     return {
         "repo_path": str(extract_path.as_posix()),
         "message": "Repository uploaded and extracted successfully."
+    }
+
+@app.post("/cleanup-uploads", response_model=CleanupResponse)
+def cleanup_uploaded_repos():
+    removed = cleanup_uploads()
+
+    return {
+        "message": "Uploaded ZIPs and extracted repositories cleaned up successfully.",
+        "removed": removed
     }
 
 
