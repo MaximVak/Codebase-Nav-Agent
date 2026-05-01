@@ -65,6 +65,7 @@ Example answer:
 - Supports ZIP upload through the React frontend
 - Extracts uploaded repositories safely on the backend
 - Allows users to analyze uploaded codebases without manually typing a repo path
+- Includes upload cleanup through both the CLI and FastAPI backend
 
 ## Tech Stack
 
@@ -217,7 +218,7 @@ From the `backend` folder, run:
 
 Expected result:
 
-    9 passed
+    11 passed
 
 ## Command Format
 
@@ -478,6 +479,25 @@ The endpoint accepts a `.zip` file and returns:
       "message": "Repository uploaded and extracted successfully."
     }
 
+## Upload Cleanup
+
+Uploaded ZIP files and extracted repositories are stored locally in ignored backend folders:
+
+    backend/uploads/
+    backend/extracted_repos/
+
+These folders are ignored by Git.
+
+To clean uploaded ZIPs and extracted repositories from the CLI, run from the `backend` folder:
+
+    python main.py --repo .. --cleanup-uploads
+
+The FastAPI backend also includes a cleanup endpoint:
+
+    POST /cleanup-uploads
+
+This removes uploaded ZIP files and extracted repositories, then recreates the upload folders.
+
 ## Running Tests
 
 This project uses `pytest` for unit tests.
@@ -540,7 +560,6 @@ Example questions:
 ## Roadmap
 
 - Add hosted deployment
-- Add automatic cleanup for uploaded repositories
 - Add better UI loading states and error messages
 - Add project/session management
 - Add rate limits for hosted usage
