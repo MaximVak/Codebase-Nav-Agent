@@ -56,7 +56,7 @@ Example answer:
 - Includes unit tests for core utilities
 - Supports Docker-based local usage
 - Can run tests inside Docker
-- Includes a FastAPI backend
+- Includes a FastAPI backend with API endpoints
 - Provides API endpoints for health checks, summaries, tech stack detection, and LLM-powered codebase questions
 - Includes interactive API documentation through FastAPI Swagger UI
 - Includes a React frontend for interacting with the agent in the browser
@@ -95,10 +95,13 @@ Example answer:
           test_indexer.py
           test_project_summary.py
           test_tech_stack.py
+          test_upload_manager.py
       frontend/
         src/
           App.jsx
           App.css
+          index.css
+          main.jsx
         package.json
         vite.config.js
       sample_repo/
