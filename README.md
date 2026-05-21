@@ -193,6 +193,12 @@ Before deploying, confirm generated and sensitive files are not tracked by Git:
 
     git ls-files | grep -E '(^|/)(\.env|venv/|__pycache__/|chroma_db/|node_modules/|dist/|uploads/|extracted_repos/)|\.(pyc|sqlite|db)$'
 
+On Windows PowerShell, use:
+
+    git ls-files | Select-String -Pattern '(^|/)(\.env|venv/|__pycache__/|chroma_db/|node_modules/|dist/|uploads/|extracted_repos/)|\.(pyc|sqlite|db)$'
+
+It is okay if this only finds `.env.example` files.
+
 Set a low OpenAI project budget as a final safety net, even with demo limits enabled.
 
 ## Repo-Specific Vector Indexes
@@ -222,6 +228,13 @@ On Windows PowerShell:
 
     python -m venv venv
     venv\Scripts\Activate.ps1
+
+If PowerShell blocks activation, run this in the same terminal and activate again:
+
+    Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+    venv\Scripts\Activate.ps1
+
+If `python` is not recognized, install Python and make sure it is added to your PATH.
 
 On macOS/Linux:
 
@@ -264,7 +277,7 @@ From the `backend` folder, run:
 
 Expected result:
 
-    11 passed
+    16 passed
 
 ## Command Format
 
@@ -475,6 +488,11 @@ From the `frontend` folder:
     npm install
     npm run dev
 
+If PowerShell blocks `npm`, use the Windows command shims instead:
+
+    npm.cmd install
+    npm.cmd run dev
+
 The frontend runs at:
 
     http://localhost:5173
@@ -563,7 +581,7 @@ From the `backend` folder, run:
 
 Expected result:
 
-    10 passed
+    16 passed
 
 ## Example Questions
 
