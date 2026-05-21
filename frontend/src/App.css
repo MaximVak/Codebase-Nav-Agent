@@ -121,7 +121,7 @@ h2 {
 .ask-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 28px;
+  gap: 5px;
 }
 
 .repo-fields {
@@ -212,7 +212,7 @@ textarea {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
-  margin-top: 28px;
+  margin-top: 5px;
 }
 
 .output-card {
