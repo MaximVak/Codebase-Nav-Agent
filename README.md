@@ -2,6 +2,12 @@
 
 Codebase Nav Agent is an LLM-powered developer tool that helps users understand unfamiliar codebases. It scans a local repository, indexes source files with embeddings, retrieves relevant code chunks, and answers natural-language questions with file-level citations.
 
+## Live Demo
+
+https://codebase-nav-agent.vercel.app
+
+The public demo limits AI questions per client to protect API usage.
+
 ## What It Does
 
 Instead of manually searching through a project folder, users can ask questions like:
