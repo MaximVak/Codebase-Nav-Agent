@@ -114,7 +114,7 @@ h2 {
   border: 1px solid #e2e8f3;
   border-radius: 22px;
   padding: 24px;
-  margin-bottom: 18px;
+  margin-bottom: 5px;
   box-shadow: 0 16px 40px rgba(24, 39, 75, 0.08);
 }
 
@@ -211,7 +211,7 @@ textarea {
 .results-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 5px;
   margin-top: 5px;
 }
 
@@ -265,6 +265,7 @@ pre.empty-output {
 }
 
 @media (max-width: 760px) {
+
   .ask-workspace,
   .results-grid {
     grid-template-columns: 1fr;
