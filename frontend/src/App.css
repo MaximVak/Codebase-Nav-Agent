@@ -118,6 +118,24 @@ h2 {
   box-shadow: 0 16px 40px rgba(24, 39, 75, 0.08);
 }
 
+.ask-workspace {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.86fr) minmax(360px, 1.14fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.ask-panel,
+.answer-card {
+  min-height: 100%;
+}
+
+.repo-fields {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.86fr) minmax(260px, 1.14fr);
+  gap: 14px;
+}
+
 .section-heading {
   margin-bottom: 18px;
 }
@@ -204,8 +222,10 @@ textarea {
   margin-bottom: 0;
 }
 
-.full-width {
-  grid-column: 1 / -1;
+.section-action {
+  width: 100%;
+  margin-bottom: 14px;
+  text-align: left;
 }
 
 pre {
@@ -243,7 +263,12 @@ pre {
 }
 
 @media (max-width: 760px) {
+  .ask-workspace,
   .results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .repo-fields {
     grid-template-columns: 1fr;
   }
 

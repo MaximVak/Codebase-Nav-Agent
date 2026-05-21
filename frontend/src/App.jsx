@@ -164,96 +164,63 @@ function App() {
         </p>
       </section>
 
-      <section className="panel">
-        <div className="section-heading">
-          <h2>Repository</h2>
-          <p>Use the included sample repo, enter a local path, or upload a ZIP file.</p>
-        </div>
+      <section className="ask-workspace">
+        <div className="panel ask-panel">
+          <div className="section-heading">
+            <h2>Ask a Question</h2>
+            <p>The answer is generated from retrieved source-code chunks.</p>
+            <p className="demo-note">Public demo usage is limited to 10 AI questions per client every 24 hours.</p>
+          </div>
 
-        <label>
-          Upload zipped codebase
-          <input
-            type="file"
-            accept=".zip"
-            onChange={handleUpload}
-            disabled={isLoading}
-          />
-        </label>
+          <div className="repo-fields">
+            <label>
+              Upload zipped codebase
+              <input
+                type="file"
+                accept=".zip"
+                onChange={handleUpload}
+                disabled={isLoading}
+              />
+            </label>
 
-        <label>
-          Repository path
-          <input
-            value={repoPath}
-            onChange={(event) => setRepoPath(event.target.value)}
-            placeholder="../sample_repo"
-            disabled={isLoading}
-          />
-        </label>
+            <label>
+              Repository path
+              <input
+                value={repoPath}
+                onChange={(event) => setRepoPath(event.target.value)}
+                placeholder="../sample_repo"
+                disabled={isLoading}
+              />
+            </label>
+          </div>
 
-        <div className="button-row">
-          <button onClick={handleSummary} disabled={isLoading || !repoPath.trim()}>
-            {getButtonText("summary", "Project Summary")}
+          <label>
+            Question
+            <textarea
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder="Where is authentication handled?"
+              rows={4}
+              disabled={isLoading}
+            />
+          </label>
+
+          <label className="checkbox-row">
+            <input
+              type="checkbox"
+              checked={fresh}
+              onChange={(event) => setFresh(event.target.checked)}
+              disabled={isLoading}
+            />
+            Re-index before asking
+          </label>
+
+          <button onClick={handleAsk} disabled={isLoading || !repoPath.trim() || !question.trim()}>
+            {getButtonText("ask", "Ask Codebase")}
           </button>
-
-          <button onClick={handleTechStack} disabled={isLoading || !repoPath.trim()}>
-            {getButtonText("tech-stack", "Tech Stack")}
-          </button>
-        </div>
-      </section>
-
-      <section className="panel">
-        <div className="section-heading">
-          <h2>Ask a Question</h2>
-          <p>The answer is generated from retrieved source-code chunks.</p>
-          <p className="demo-note">Public demo usage is limited to 10 AI questions per client every 24 hours.</p>
         </div>
 
-        <label>
-          Question
-          <textarea
-            value={question}
-            onChange={(event) => setQuestion(event.target.value)}
-            placeholder="Where is authentication handled?"
-            rows={4}
-            disabled={isLoading}
-          />
-        </label>
-
-        <label className="checkbox-row">
-          <input
-            type="checkbox"
-            checked={fresh}
-            onChange={(event) => setFresh(event.target.checked)}
-            disabled={isLoading}
-          />
-          Re-index before asking
-        </label>
-
-        <button onClick={handleAsk} disabled={isLoading || !repoPath.trim() || !question.trim()}>
-          {getButtonText("ask", "Ask Codebase")}
-        </button>
-      </section>
-
-      {(statusMessage || errorMessage || isLoading) && (
-        <section className={`notice ${errorMessage ? "error" : "success"}`}>
-          {isLoading && <p>Running {loadingAction}...</p>}
-          {statusMessage && !isLoading && <p>{statusMessage}</p>}
-          {errorMessage && <p>{errorMessage}</p>}
-        </section>
-      )}
-
-      <section className="results-grid">
-        <article className="panel output-card">
-          <h2>Project Summary</h2>
-          <pre>{summaryOutput || "Run Project Summary to see an overview here."}</pre>
-        </article>
-
-        <article className="panel output-card">
-          <h2>Tech Stack</h2>
-          <pre>{techStackOutput || "Run Tech Stack to see detected technologies here."}</pre>
-        </article>
-
-        <article className="panel output-card full-width">
+        <article className="panel output-card answer-card">
           <h2>Answer</h2>
           <pre>{answerOutput || "Ask a codebase question to see the answer here."}</pre>
 
@@ -267,6 +234,38 @@ function App() {
               </ul>
             </div>
           )}
+        </article>
+      </section>
+
+      {(statusMessage || errorMessage || isLoading) && (
+        <section className={`notice ${errorMessage ? "error" : "success"}`}>
+          {isLoading && <p>Running {loadingAction}...</p>}
+          {statusMessage && !isLoading && <p>{statusMessage}</p>}
+          {errorMessage && <p>{errorMessage}</p>}
+        </section>
+      )}
+
+      <section className="results-grid">
+        <article className="panel output-card">
+          <button
+            className="section-action"
+            onClick={handleSummary}
+            disabled={isLoading || !repoPath.trim()}
+          >
+            {getButtonText("summary", "Project Summary")}
+          </button>
+          <pre>{summaryOutput || "Run Project Summary to see an overview here."}</pre>
+        </article>
+
+        <article className="panel output-card">
+          <button
+            className="section-action"
+            onClick={handleTechStack}
+            disabled={isLoading || !repoPath.trim()}
+          >
+            {getButtonText("tech-stack", "Tech Stack")}
+          </button>
+          <pre>{techStackOutput || "Run Tech Stack to see detected technologies here."}</pre>
         </article>
       </section>
     </main>
