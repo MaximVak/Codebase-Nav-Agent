@@ -121,7 +121,7 @@ h2 {
 .ask-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
+  gap: 28px;
 }
 
 .repo-fields {
