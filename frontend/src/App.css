@@ -212,6 +212,7 @@ textarea {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+  margin-top: 28px;
 }
 
 .output-card {
@@ -237,6 +238,10 @@ pre {
   overflow-x: auto;
   text-align: left;
   font-size: 0.95rem;
+}
+
+pre.empty-output {
+  min-height: auto;
 }
 
 .sources {

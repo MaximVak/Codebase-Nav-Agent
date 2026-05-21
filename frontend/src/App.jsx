@@ -222,7 +222,9 @@ function App() {
 
         <article className="panel output-card answer-card">
           <h2>Answer</h2>
-          <pre>{answerOutput || "Ask a codebase question to see the answer here."}</pre>
+          <pre className={!answerOutput ? "empty-output" : undefined}>
+            {answerOutput || "Ask a codebase question to see the answer here."}
+          </pre>
 
           {sources.length > 0 && (
             <div className="sources">
@@ -254,7 +256,9 @@ function App() {
           >
             {getButtonText("summary", "Project Summary")}
           </button>
-          <pre>{summaryOutput || "Run Project Summary to see an overview here."}</pre>
+          <pre className={!summaryOutput ? "empty-output" : undefined}>
+            {summaryOutput || "Run Project Summary to see an overview here."}
+          </pre>
         </article>
 
         <article className="panel output-card">
@@ -265,7 +269,9 @@ function App() {
           >
             {getButtonText("tech-stack", "Tech Stack")}
           </button>
-          <pre>{techStackOutput || "Run Tech Stack to see detected technologies here."}</pre>
+          <pre className={!techStackOutput ? "empty-output" : undefined}>
+            {techStackOutput || "Run Tech Stack to see detected technologies here."}
+          </pre>
         </article>
       </section>
     </main>
