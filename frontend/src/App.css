@@ -120,19 +120,13 @@ h2 {
 
 .ask-workspace {
   display: grid;
-  grid-template-columns: minmax(320px, 0.86fr) minmax(360px, 1.14fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
-  align-items: start;
-}
-
-.ask-panel,
-.answer-card {
-  min-height: 100%;
 }
 
 .repo-fields {
   display: grid;
-  grid-template-columns: minmax(220px, 0.86fr) minmax(260px, 1.14fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -146,10 +140,12 @@ label {
   font-weight: 700;
   margin-bottom: 16px;
   color: #172033;
+  min-width: 0;
 }
 
 input,
 textarea {
+  min-width: 0;
   width: 100%;
   border: 1px solid #ccd6e7;
   border-radius: 12px;
@@ -223,9 +219,10 @@ textarea {
 }
 
 .section-action {
-  width: 100%;
-  margin-bottom: 14px;
-  text-align: left;
+  display: block;
+  width: fit-content;
+  margin: 0 auto 14px;
+  text-align: center;
 }
 
 pre {
