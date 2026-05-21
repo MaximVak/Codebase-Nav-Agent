@@ -1,7 +1,9 @@
 import { useState } from "react";
 import "./App.css";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "");
 
 function App() {
   const [repoPath, setRepoPath] = useState("../sample_repo");
@@ -203,6 +205,7 @@ function App() {
         <div className="section-heading">
           <h2>Ask a Question</h2>
           <p>The answer is generated from retrieved source-code chunks.</p>
+          <p className="demo-note">Public demo usage is limited to 10 AI questions per client every 24 hours.</p>
         </div>
 
         <label>

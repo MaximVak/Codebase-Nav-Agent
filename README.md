@@ -66,6 +66,8 @@ Example answer:
 - Extracts uploaded repositories safely on the backend
 - Allows users to analyze uploaded codebases without manually typing a repo path
 - Includes upload cleanup through both the CLI and FastAPI backend
+- Includes configurable demo limits to protect hosted OpenAI API usage
+- Supports deployment-specific frontend API URLs and backend CORS origins
 
 ## Tech Stack
 
@@ -151,6 +153,47 @@ Example safety summary:
     - ignored_dirs: 12629
     - unsupported_extensions: 3
     - secret_files: 1
+
+## Hosted Demo Limits
+
+The FastAPI backend enables demo limits by default so a public deployment cannot make unlimited OpenAI calls.
+
+Configure these values in `backend/.env`:
+
+    DEMO_MODE=true
+    DEMO_DAILY_LIMIT=10
+    DEMO_WINDOW_SECONDS=86400
+    DEMO_MAX_QUESTION_CHARS=500
+    DEMO_MAX_INDEX_CHUNKS=120
+    DEMO_MAX_CONTEXT_CHUNKS=8
+    BACKEND_CORS_ORIGINS=http://localhost:5173,https://your-frontend-domain.com
+
+What these limits do:
+
+- `DEMO_DAILY_LIMIT` limits how many `/ask` requests a client IP can make per window.
+- `DEMO_WINDOW_SECONDS` controls the rate-limit window. The default is 24 hours.
+- `DEMO_MAX_QUESTION_CHARS` rejects very long questions before OpenAI is called.
+- `DEMO_MAX_INDEX_CHUNKS` rejects oversized repos when `fresh` indexing is requested.
+- `DEMO_MAX_CONTEXT_CHUNKS` limits how much retrieved code is sent to the chat model.
+- `BACKEND_CORS_ORIGINS` should include your deployed frontend URL.
+
+For private local use, set:
+
+    DEMO_MODE=false
+
+The deployed demo limits AI questions per client to prevent API abuse. For full local usage, add your own `OPENAI_API_KEY` to the backend `.env` file.
+
+## Deployment Notes
+
+Keep `OPENAI_API_KEY` backend-only. Do not put it in the React environment. The frontend should only use public variables such as:
+
+    VITE_API_URL=https://your-backend-domain.com
+
+Before deploying, confirm generated and sensitive files are not tracked by Git:
+
+    git ls-files | grep -E '(^|/)(\.env|venv/|__pycache__/|chroma_db/|node_modules/|dist/|uploads/|extracted_repos/)|\.(pyc|sqlite|db)$'
+
+Set a low OpenAI project budget as a final safety net, even with demo limits enabled.
 
 ## Repo-Specific Vector Indexes
 

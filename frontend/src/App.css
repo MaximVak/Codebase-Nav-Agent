@@ -95,6 +95,13 @@ h2 {
   color: #40506b;
 }
 
+.section-heading .demo-note {
+  margin-top: 8px;
+  color: #775f12;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
 .subtitle {
   max-width: 760px;
   color: #5d6a83;

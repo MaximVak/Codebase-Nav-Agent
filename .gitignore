@@ -1,16 +1,25 @@
 # Environment variables
 .env
+.env.*
+!.env.example
 backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Python
 venv/
 backend/venv/
 __pycache__/
 *.pyc
+backend/test-tmp/
 
 # Chroma vector database
 chroma_db/
 backend/chroma_db/
+
+# Databases
+*.sqlite
+*.db
 
 # OS
 .DS_Store
@@ -20,6 +29,8 @@ backend/chroma_db/
 .idea/
 
 # Frontend
+node_modules/
+dist/
 frontend/node_modules/
 frontend/dist/
 

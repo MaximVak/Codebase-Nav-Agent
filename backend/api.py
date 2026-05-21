@@ -5,7 +5,7 @@ import zipfile
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -15,12 +15,39 @@ from llm import answer_question
 from tech_stack import detect_tech_stack, format_tech_stack
 from project_summary import scan_project, format_project_summary
 from upload_manager import UPLOAD_DIR, EXTRACTED_REPOS_DIR, ensure_upload_dirs, cleanup_uploads
+from demo_limits import (
+    ask_rate_limiter,
+    format_retry_after,
+    get_client_identifier,
+    get_demo_limit_settings,
+)
 
 
 load_dotenv()
 
 MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024
 ensure_upload_dirs()
+
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
+]
+
+
+def get_cors_origins():
+    raw_origins = os.getenv("BACKEND_CORS_ORIGINS")
+
+    if not raw_origins:
+        return DEFAULT_CORS_ORIGINS
+
+    origins = [
+        origin.strip()
+        for origin in raw_origins.split(",")
+        if origin.strip()
+    ]
+
+    return origins or DEFAULT_CORS_ORIGINS
+
 
 app = FastAPI(
     title="Codebase Nav Agent API",
@@ -30,10 +57,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -85,9 +109,12 @@ def safe_extract_zip(zip_path: Path, extract_to: Path):
 
 @app.get("/health")
 def health_check():
+    demo_settings = get_demo_limit_settings()
+
     return {
         "status": "ok",
-        "service": "Codebase Nav Agent API"
+        "service": "Codebase Nav Agent API",
+        "demo_mode": demo_settings.enabled
     }
 
 @app.post("/upload", response_model=UploadResponse)
@@ -165,8 +192,9 @@ def get_tech_stack(request: UtilityRequest):
 
 
 @app.post("/ask", response_model=AskResponse)
-def ask_question(request: AskRequest):
+def ask_question(http_request: Request, request: AskRequest):
     api_key = os.getenv("OPENAI_API_KEY")
+    demo_settings = get_demo_limit_settings()
 
     if not api_key:
         raise HTTPException(
@@ -174,7 +202,47 @@ def ask_question(request: AskRequest):
             detail="Missing OPENAI_API_KEY. Create a .env file inside backend/."
         )
 
+    if demo_settings.enabled and len(request.question) > demo_settings.max_question_chars:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Question is too long for the public demo. "
+                f"Use {demo_settings.max_question_chars} characters or fewer."
+            )
+        )
+
     chunks, skipped = create_chunks(request.repo_path)
+
+    if (
+        demo_settings.enabled
+        and request.fresh
+        and len(chunks) > demo_settings.max_index_chunks
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "This repository is too large for the public demo. "
+                f"The demo indexes up to {demo_settings.max_index_chunks} chunks."
+            )
+        )
+
+    if demo_settings.enabled:
+        client_id = get_client_identifier(http_request)
+        allowed, retry_after, _remaining = ask_rate_limiter.hit(
+            client_id,
+            demo_settings.ask_limit,
+            demo_settings.window_seconds
+        )
+
+        if not allowed:
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    "Demo question limit reached. "
+                    f"Try again in {format_retry_after(retry_after)}."
+                ),
+                headers={"Retry-After": str(retry_after)}
+            )
 
     if request.fresh:
         collection = reset_collection(api_key, request.repo_path)
@@ -182,7 +250,19 @@ def ask_question(request: AskRequest):
     else:
         collection = get_collection(api_key, request.repo_path)
 
-    matched_chunks = search_code(collection, request.question)
+    search_limit = (
+        demo_settings.max_context_chunks
+        if demo_settings.enabled
+        else 12
+    )
+    matched_chunks = search_code(
+        collection,
+        request.question,
+        n_results=search_limit
+    )
+
+    if demo_settings.enabled:
+        matched_chunks = matched_chunks[:demo_settings.max_context_chunks]
 
     retrieved_sources = []
 
